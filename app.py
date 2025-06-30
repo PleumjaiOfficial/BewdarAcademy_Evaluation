@@ -447,6 +447,10 @@ def create_summarize_from_summary_table(summary_df):
     return markdown_text
 
 
+
+# Zoning
+
+# ฟังก์ชันเดิมที่ปรับปรุงเล็กน้อย (สำหรับใครที่ยังต้องการใช้)
 def plot_classroom_cluster(df):
     """Interactive Scatter Plot (Plotly) แสดง STEM vs Language พร้อม Zoning และ Cluster ถ้ามี"""
     
@@ -554,6 +558,7 @@ def plot_classroom_cluster(df):
     fig.update_layout(dragmode=False)
 
     return fig
+
 
 # Main Streamlit App
 def main():
