@@ -369,7 +369,7 @@ def main():
         try:
             # หาตำแหน่งไฟล์ที่แน่นอน
             current_dir = Path(__file__).parent
-            file_path = current_dir / "data" / f"export_all_outputs_{levels}.xlsx"
+            file_path = current_dir / "mock_data" / f"export_all_outputs_{levels}.xlsx"
             
             # Debug: แสดงข้อมูล path
             st.write(f"Current directory: {current_dir}")
