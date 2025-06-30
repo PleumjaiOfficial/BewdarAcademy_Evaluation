@@ -366,10 +366,25 @@ def main():
     @st.cache_data
     def load_data_by_level(levels, sheet_name):
         try:
-            df = pd.read_excel(f"data/export_all_outputs_{levels}.xlsx", sheet_name=sheet_name)
-            df["LEVEL"] = sheet_name  # เพิ่มคอลัมน์ LEVEL เผื่อใช้ต่อ
+            # หาตำแหน่งไฟล์ที่แน่นอน
+            current_dir = Path(__file__).parent
+            file_path = current_dir / "data" / f"export_all_outputs_{levels}.xlsx"
+            
+            # Debug: แสดงข้อมูล path
+            st.write(f"Current directory: {current_dir}")
+            st.write(f"Looking for file at: {file_path}")
+            st.write(f"File exists: {file_path.exists()}")
+            
+            if not file_path.exists():
+                st.error(f"❌ ไม่พบไฟล์: {file_path}")
+                return pd.DataFrame()
+                
+            df = pd.read_excel(file_path, sheet_name=sheet_name)
+            df["LEVEL"] = sheet_name
             return df
+            
         except Exception as e:
+            st.error(f"❌ เกิดข้อผิดพลาด: {str(e)}")
             st.error(f"❌ ระดับชั้น {levels} ยังไม่พร้อมสำหรับการประเมินผล")
             return pd.DataFrame()
 
