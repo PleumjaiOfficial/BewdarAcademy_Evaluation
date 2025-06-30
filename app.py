@@ -372,9 +372,9 @@ def main():
             file_path = current_dir / "mock_data" / f"export_all_outputs_{levels}.xlsx"
             
             # Debug: แสดงข้อมูล path
-            st.write(f"Current directory: {current_dir}")
-            st.write(f"Looking for file at: {file_path}")
-            st.write(f"File exists: {file_path.exists()}")
+            # st.write(f"Current directory: {current_dir}")
+            # st.write(f"Looking for file at: {file_path}")
+            # st.write(f"File exists: {file_path.exists()}")
             
             if not file_path.exists():
                 st.error(f"❌ ไม่พบไฟล์: {file_path}")
