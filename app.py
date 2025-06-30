@@ -246,7 +246,7 @@ def create_summarize_from_summary_table(summary_df):
     simulated_df = summary_df[summary_df['Classroom Type'] != 'General']
     
     # หา Overall Avg สูงสุดในห้องเรียนจำลอง
-    best_row = simulated_df.loc[simulated_df['Overall Avg'].astype(float).idxmax()]
+    best_row = simulated_df.loc[simulated_df['Rank'].astype(float).idxmin()]
     best_classroom = best_row['Classroom Type']
     best_score = best_row['Overall Avg']
     best_tier = best_row['Tier']
@@ -273,9 +273,9 @@ def create_summarize_from_summary_table(summary_df):
 
 
 def plot_classroom_cluster(df):
-    """Interactive Scatter Plot (Plotly) แสดง STEM vs Language พร้อมแบ่ง Zoning ทั้ง 9 โซน"""
+    """Interactive Scatter Plot (Plotly) แสดง STEM vs Language พร้อม Zoning และ Cluster ถ้ามี"""
     
-    cluster_df = prepare_data_for_analysis(df)  # สมมติว่าเตรียม df แล้วมี 'STEM_AVG', 'LANGUAGE_AVG', 'CLUSTER'
+    cluster_df = prepare_data_for_analysis(df)
 
     cluster_colors = {
         'Very High': "#00ff2f",
@@ -317,20 +317,40 @@ def plot_classroom_cluster(df):
             font=dict(size=10, color="black")
         )
 
-    # วาด scatter plot
-    for cluster, group in cluster_df.groupby('CLUSTER'):
+    # ตรวจสอบว่ามี column CLUSTER และมีค่าไม่ใช่ NaN หรือไม่
+    use_cluster = 'CLUSTER' in cluster_df.columns and cluster_df['CLUSTER'].notna().sum() > 0
+
+    if use_cluster:
+        # วาดตาม cluster
+        for cluster, group in cluster_df.groupby('CLUSTER'):
+            fig.add_trace(go.Scatter(
+                x=group['STEM_AVG'],
+                y=group['LANGUAGE_AVG'],
+                mode='markers',
+                name=cluster,
+                marker=dict(
+                    size=20,
+                    color=cluster_colors.get(cluster, "#888888"),
+                    symbol='diamond',
+                    line=dict(width=1, color='white')
+                ),
+                text=group.get('STUDENT_NAME', None),
+                hoverinfo='text+x+y'
+            ))
+    else:
+        # ไม่มี cluster — วาดแบบปกติ
         fig.add_trace(go.Scatter(
-            x=group['STEM_AVG'],
-            y=group['LANGUAGE_AVG'],
+            x=cluster_df['STEM_AVG'],
+            y=cluster_df['LANGUAGE_AVG'],
             mode='markers',
-            name=cluster,
+            name="Students",
             marker=dict(
                 color='red',
                 size=20,
                 symbol='diamond',
                 line=dict(width=1, color='white')
             ),
-            text=group.get('STUDENT_NAME', None),  # ถ้ามีชื่อ
+            text=cluster_df.get('STUDENT_NAME', None),
             hoverinfo='text+x+y'
         ))
 
@@ -347,11 +367,11 @@ def plot_classroom_cluster(df):
                   line=dict(color="gray", dash="dot", width=1))
 
     fig.update_layout(
-        title='Student Performance by Zone and Cluster',
+        title='Student Performance by Zone' + (" and Cluster" if use_cluster else ""),
         xaxis=dict(title='STEM Average (Math + Science)', range=[0, 100]),
         yaxis=dict(title='Language Average (English + Thai)', range=[0, 100]),
         plot_bgcolor='white',
-        legend_title='Cluster',
+        legend_title='Cluster' if use_cluster else 'Students',
         height=700
     )
 
@@ -365,11 +385,11 @@ def main():
     
     # โหลดข้อมูลจากทุกระดับชั้น
     @st.cache_data
-    def load_data_by_level(levels, sheet_name):
+    def load_data_by_level(levels, sheet_name, month):
         try:
             # หาตำแหน่งไฟล์ที่แน่นอน
             current_dir = Path(__file__).parent
-            file_path = current_dir / "mock_data" / f"export_all_outputs_{levels}.xlsx"
+            file_path = current_dir / "mock_data" / f"export_all_outputs_{levels}_{month}.xlsx"
             
             # Debug: แสดงข้อมูล path
             # st.write(f"Current directory: {current_dir}")
@@ -391,6 +411,7 @@ def main():
 
     # รายการระดับชั้นที่มี
     levels = ["Primary1", "Primary2", "Primary3", "Primary4", "Primary5", "Primary6"]
+    evaluate_month = ["JULY"]
 
     # Sidebar Input
     with st.sidebar:
@@ -398,13 +419,14 @@ def main():
         st.markdown("กรุณาเลือกระดับชั้นและชื่อนักเรียน")
 
         selected_level = st.selectbox("🏫 ระดับชั้น", options=[""] + levels)
+        selected_month = st.selectbox("⏱️ เดือนที่ประเมินผล", options=[""] + evaluate_month)
 
-        if selected_level:
+        if selected_level and selected_month:
             load_analysis_sheet_name = "Analysis_" + selected_level
             load_analysis_our_students_name = "OurStudent_" + selected_level
 
-            df = load_data_by_level(selected_level, load_analysis_sheet_name)
-            df_our_students = load_data_by_level(selected_level, load_analysis_our_students_name)
+            df = load_data_by_level(selected_level, load_analysis_sheet_name, selected_month)
+            df_our_students = load_data_by_level(selected_level, load_analysis_our_students_name, selected_month)
 
 
             if df.empty:
