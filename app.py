@@ -6,7 +6,7 @@ from pathlib import Path
 
 # ตั้งค่า page config
 st.set_page_config(
-    page_title="Student Assessment Report",
+    page_title="Student Growth Profile",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -564,7 +564,7 @@ def plot_classroom_cluster(df):
 def main():
     # Header
     st.image("bd-logo.png", width=2000)  # ใส่ชื่อไฟล์และกำหนดขนาด
-    st.title("Bewdar Academy Lamphun: Student Assessment Report")
+    st.title("Bewdar Academy Lamphun: Student Growth Profile")
     
     # โหลดข้อมูลจากทุกระดับชั้น
     @st.cache_data
